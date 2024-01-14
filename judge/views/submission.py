@@ -385,6 +385,10 @@ class SubmissionsListBase(DiggPaginatorMixin, TitleMixin, ListView):
         queryset = Submission.objects.all()
         use_straight_join(queryset)
         queryset = submission_related(queryset.order_by('-id'))
+        
+        if not self.request.user.has_perm('auth.can_see_ghost_submission'):
+            queryset = queryset.exclude(from_ghost_account=True)
+        
         if self.show_problem:
             queryset = queryset.prefetch_related(Prefetch('problem__translations',
                                                           queryset=ProblemTranslation.objects.filter(

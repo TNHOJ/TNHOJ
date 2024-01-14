@@ -55,16 +55,16 @@ class TexoidRenderer(object):
         self.cache.cache_data(hash, 'meta', utf8bytes(json.dumps(meta)), url=False, gzip=False)
 
         result = {
-            'png': self.cache.cache_data(hash, 'png', b64decode(data['png'])),
-            'svg': self.cache.cache_data(hash, 'svg', data['svg'].encode('utf-8')),
+            'png': self.cache.cache_data(hash, 'pic.png', b64decode(data['png'])),
+            'svg': self.cache.cache_data(hash, 'pic.svg', data['svg'].encode('utf-8')),
             'meta': meta,
         }
         return result
 
     def query_cache(self, hash):
         result = {
-            'svg': self.cache.get_url(hash, 'svg'),
-            'png': self.cache.get_url(hash, 'png'),
+            'svg': self.cache.get_url(hash, 'pic.svg'),
+            'png': self.cache.get_url(hash, 'pic.png'),
         }
 
         key = 'texoid:meta:' + hash

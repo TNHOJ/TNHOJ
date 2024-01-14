@@ -32,6 +32,7 @@ from judge.models import ContestSubmission, Judge, Language, Problem, ProblemGro
     ProblemTranslation, ProblemType, RuntimeVersion, Solution, Submission, SubmissionSource
 from judge.tasks import on_new_problem
 from judge.template_context import misc_config
+from judge.utils.ghost_submission import is_a_ghost_submission
 from judge.utils.diggpaginator import DiggPaginator
 from judge.utils.opengraph import generate_opengraph
 from judge.utils.pdfoid import PDF_RENDERING_ENABLED, render_pdf
@@ -71,6 +72,9 @@ class ProblemMixin(object):
 
     def no_such_problem(self):
         code = self.kwargs.get(self.slug_url_kwarg, None)
+        if(not self.request.user.is_authenticated):
+            return generic_message(self.request, _('Login required!!!'),
+                               _('Please login to read %s!!') % code, status=404)
         return generic_message(self.request, _('No such problem'),
                                _('Could not find a problem with the code "%s".') % code, status=404)
 
@@ -120,7 +124,7 @@ class ProblemSolution(SolvedProblemMixin, ProblemMixin, TitleMixin, CommentedDet
 
         solution = get_object_or_404(Solution, problem=self.object)
 
-        if not solution.is_accessible_by(self.request.user) or self.request.in_contest:
+        if not self.request.user.is_superuser and (not solution.is_accessible_by(self.request.user) or self.request.in_contest):
             raise Http404()
         context['solution'] = solution
         context['has_solved_problem'] = self.object.id in self.get_completed_problems()
@@ -376,6 +380,8 @@ class ProblemList(QueryStringSortMixin, TitleMixin, SolvedProblemMixin, ListView
         _filter = Q(is_public=True) & Q(is_organization_private=False)
         if self.profile is not None:
             _filter = Problem.q_add_author_curator_tester(_filter, self.profile)
+        else:
+            _filter = _filter & Q(is_guest_private=False) 
         return _filter
 
     def get_normal_queryset(self):
@@ -386,6 +392,8 @@ class ProblemList(QueryStringSortMixin, TitleMixin, SolvedProblemMixin, ListView
             queryset = queryset.exclude(id__in=Submission.objects
                                         .filter(user=self.profile, result='AC', case_points__gte=F('case_total'))
                                         .values_list('problem_id', flat=True))
+        if self.profile is None:
+            queryset = queryset.filter(is_guest_private=False)
         if self.show_types:
             queryset = queryset.prefetch_related('types')
         queryset = queryset.annotate(has_public_editorial=Case(
@@ -652,6 +660,8 @@ class ProblemSubmit(LoginRequiredMixin, ProblemMixin, TitleMixin, SingleObjectFo
 
         with transaction.atomic():
             self.new_submission = form.save(commit=False)
+            if is_a_ghost_submission():
+                self.new_submission.from_ghost_account = True
 
             contest_problem = self.contest_problem
             if contest_problem is not None:

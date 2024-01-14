@@ -67,6 +67,13 @@ class ProblemDataForm(ModelForm):
             raise ValidationError(_('Your zip file is invalid!'))
         return self.cleaned_data['zipfile']
 
+    # def save(self, commit=True):
+    #     m = super(ProblemDataForm, self).save(commit=False)
+
+    #     if(commit):
+    #         m.
+        
+
     clean_checker_args = checker_args_cleaner
     clean_grader_args = grader_args_cleaner
 

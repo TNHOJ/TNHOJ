@@ -135,9 +135,11 @@
                         <h3>{{ _('Hot problems') }} <i class="fa fa-fire"></i></h3>
                         <div class="sidebox-content">
                             <ul class="problem-list">{% for problem in hot_problems %}
+                                {% if (problem.is_guest_private and request.user.is_authenticated) or (not problem.is_guest_private)%}
                                 <li><a href="{{ url('problem_detail', problem.code) }}" class="hot-problem-link">
                                     {{ problem.name }}
                                 </a></li>
+                                {% endif %}
                             {% endfor %}</ul>
                         </div>
                     </div>
@@ -187,6 +189,7 @@
                 </thead>
                 <tbody>
                 {% for problem in problems %}
+                    {% if (problem.is_guest_private and request.user.is_authenticated) or (not problem.is_guest_private)%}
                     <tr>
                         {% if request.user.is_authenticated %}
                             {% if problem.id in completed_problem_ids %}
@@ -250,6 +253,7 @@
                             {% endif %}
                         </td>
                     </tr>
+                    {% endif %}
                 {% endfor %}
                 </tbody>
             </table>

@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 
 from judge.models import Language, Profile
-
+from judge.utils.matrix_utils import MatrixUtils
 
 class Command(BaseCommand):
     help = 'creates a user'
@@ -26,6 +26,8 @@ class Command(BaseCommand):
         usr.is_superuser = options['superuser']
         usr.is_staff = options['staff']
         usr.save()
+        Matrix = MatrixUtils()
+        Matrix.create_account(options['name'],options['name'],options['password'])
 
         profile = Profile(user=usr)
         profile.language = Language.objects.get(key=options['language'])

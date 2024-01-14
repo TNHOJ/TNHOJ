@@ -246,9 +246,7 @@ class Profile(models.Model):
         from judge.models import Problem
         public_problems = Problem.get_public_problems()
         data = (
-            public_problems.filter(submission__user=self, submission__points__isnull=False)
-                           .annotate(max_points=Max('submission__points')).order_by('-max_points')
-                           .values_list('max_points', flat=True).filter(max_points__gt=0)
+            public_problems.filter(submission__user=self, submission__points__isnull=False).annotate(max_points=Max('submission__points')).order_by('-max_points').values_list('max_points', flat=True).filter(max_points__gt=0)
         )
         bonus_function = settings.DMOJ_PP_BONUS_FUNCTION
         points = sum(data)

@@ -84,6 +84,7 @@ class Submission(models.Model):
     error = models.TextField(verbose_name=_('compile errors'), null=True, blank=True)
     current_testcase = models.IntegerField(default=0)
     batch = models.BooleanField(verbose_name=_('batched cases'), default=False)
+    from_ghost_account = models.BooleanField(verbose_name=_('from ghost account'), default=False, null=True, blank=True)
     case_points = models.FloatField(verbose_name=_('test case points'), default=0)
     case_total = models.FloatField(verbose_name=_('test case total points'), default=0)
     judged_on = models.ForeignKey('Judge', verbose_name=_('judged on'), null=True, blank=True,
@@ -94,7 +95,7 @@ class Submission(models.Model):
     contest_object = models.ForeignKey('Contest', verbose_name=_('contest'), null=True, blank=True,
                                        on_delete=models.SET_NULL, related_name='+', db_index=False)
     locked_after = models.DateTimeField(verbose_name=_('submission lock'), null=True, blank=True)
-
+    
     @classmethod
     def result_class_from_code(cls, result, case_points, case_total):
         if result == 'AC':

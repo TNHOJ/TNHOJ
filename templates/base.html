@@ -11,6 +11,7 @@
     {% endif %}
     <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1">
     <!-- Favicons-->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="apple-touch-icon" sizes="57x57" href="/apple-touch-icon-57x57.png">
     <link rel="apple-touch-icon" sizes="60x60" href="/apple-touch-icon-60x60.png">
     <link rel="apple-touch-icon" sizes="72x72" href="/apple-touch-icon-72x72.png">
@@ -248,7 +249,7 @@
                         {% if children %}<ul>{{ loop(children) }}</ul>{% endif %}
                     {% endwith %}
                 </li>
-            {% endfor %}
+            {% endfor %}  
         </ul>
 
         <span id="user-links">
@@ -281,6 +282,7 @@
                         <ul style="width: 150px">
                             {% if request.user.is_staff or request.user.is_superuser %}
                                 <li><a href="{{ url('admin:index') }}">{{ _('Admin') }}</a></li>
+                                <li><a href="{{ url('registration_register') }}">{{ _('Create new account') }}</a></li>
                             {% endif %}
                             <li><a href="{{ url('user_edit_profile') }}">{{ _('Edit profile') }}</a></li>
                             {% if request.user.is_impersonate %}
@@ -299,8 +301,8 @@
             {% else %}
                 <span class="anon">
                     <a href="{{ url('auth_login') }}?next={{ LOGIN_RETURN_PATH|urlencode }}"><b>{{ _('Log in') }}</b></a>
-                    &nbsp;{{ _('or') }}&nbsp;
-                    <a href="{{ url('registration_register') }}"><b>{{ _('Sign up') }}</b></a>
+                    <!-- &nbsp;{{ _('or') }}&nbsp; -->
+                    <!-- <a href="{{ url('registration_register') }}"><b>{{ _('Sign up') }}</b></a> -->
                 </span>
             {% endif %}
         </span>

@@ -124,7 +124,7 @@ class ProblemAdmin(NoBatchDeleteMixin, VersionAdmin):
     fieldsets = (
         (None, {
             'fields': (
-                'code', 'name', 'suggester', 'is_public', 'is_manually_managed', 'date', 'authors',
+                'code', 'name', 'suggester', 'is_public', 'is_guest_private', 'is_manually_managed', 'date', 'authors',
                 'curators', 'testers', 'is_organization_private', 'organizations', 'submission_source_visibility_mode',
                 'testcase_visibility_mode', 'testcase_result_visibility_mode', 'allow_view_feedback',
                 'is_full_markup', 'pdf_url', 'source', 'description', 'license',
@@ -157,6 +157,15 @@ class ProblemAdmin(NoBatchDeleteMixin, VersionAdmin):
             actions[name] = (func, name, desc)
 
             func, name, desc = self.get_action('make_private')
+            actions[name] = (func, name, desc)
+            
+            func, name, desc = self.get_action('unmake_private')
+            actions[name] = (func, name, desc)
+            
+            func, name, desc = self.get_action('hide_for_guest')
+            actions[name] = (func, name, desc)
+            
+            func, name, desc = self.get_action('unhide_for_guest')
             actions[name] = (func, name, desc)
 
         return actions
@@ -208,6 +217,36 @@ class ProblemAdmin(NoBatchDeleteMixin, VersionAdmin):
 
     make_private.short_description = _('Mark problems as private')
 
+    def unmake_private(self, request, queryset):
+        count = queryset.update(is_public=True)
+        for problem_id in queryset.values_list('id', flat=True):
+            self._rescore(request, problem_id, True)
+        self.message_user(request, ngettext('%d problem successfully marked as public.',
+                                            '%d problems successfully marked as public.',
+                                            count) % count)
+
+    unmake_private.short_description = _('Mark problems as public')
+    
+    def hide_for_guest(self, request, queryset):
+        count = queryset.update(is_guest_private=True)
+        for problem_id in queryset.values_list('id', flat=True):
+            self._rescore(request, problem_id, True)
+        self.message_user(request, ngettext('%d problem successfully hiden.',
+                                            '%d problems successfully hiden.',
+                                            count) % count)
+        
+    hide_for_guest.short_description = _("Hide problems from guest")
+    
+    def unhide_for_guest(self, request, queryset):
+        count = queryset.update(is_guest_private=False)
+        for problem_id in queryset.values_list('id', flat=True):
+            self._rescore(request, problem_id, True)
+        self.message_user(request, ngettext('%d problem successfully unhiden.',
+                                            '%d problems successfully unhiden.',
+                                            count) % count)
+        
+    unhide_for_guest.short_description = _("Unhide problems from guest")
+    
     def get_queryset(self, request):
         return Problem.get_editable_problems(request.user).prefetch_related('authors__user').distinct()
 

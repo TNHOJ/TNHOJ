@@ -2,6 +2,7 @@
 
 {% block js_media %}
     <script type="text/javascript" src="{{ ACE_URL }}/ace.js"></script>
+    <script type="text/javascript" src="{{ ACE_URL }}/ext-language_tools.js"></script>
     {{ form.media.js }}
     {% compress js %}
         <script type="text/javascript">
@@ -12,7 +13,6 @@
                 }
 
                 window.previous_template = '';
-
                 function update_language_template() {
                     var source = $('textarea#id_source');
                     if (source.val() == window.previous_template.replace(/\r/g, '') || source.val() == '') {

@@ -40,7 +40,7 @@ register_patterns = [
     # Let's use <str:activation_key>, because a bad activation key should still get to the view;
     # that way, it can return a sensible "invalid key" message instead of a confusing 404.
     path('activate/<str:activation_key>/', ActivationView.as_view(), name='registration_activate'),
-    path('register/', RegistrationView.as_view(), name='registration_register'),
+    path('BH_29JJ2MDI_2H4NDI/', RegistrationView.as_view(), name='registration_register'),
     path('register/complete/',
          TitledTemplateView.as_view(template_name=REGISTRATION_COMPLETE_TEMPLATE,
                                     title=_('Registration Completed')),

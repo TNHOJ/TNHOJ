@@ -24,6 +24,7 @@ from judge.models import BlogPost, Comment, Contest, Language, Organization, Org
 from judge.tasks import on_new_problem
 from judge.utils.ranker import ranker
 from judge.utils.views import DiggPaginatorMixin, QueryStringSortMixin, TitleMixin, generic_message
+from judge.utils.matrix_utils import MatrixUtils
 from judge.views.blog import BlogPostCreate, PostListBase
 from judge.views.contests import ContestList, CreateContest
 from judge.views.problem import ProblemCreate, ProblemList
@@ -155,6 +156,8 @@ class JoinOrganization(OrganizationMembershipChange):
                          max_orgs).format(count=max_orgs),
             )
 
+        matrix = MatrixUtils()
+        matrix.add_user(self.request.user.username,org.name)
         profile.organizations.add(org)
         profile.save()
 
@@ -165,6 +168,8 @@ class LeaveOrganization(OrganizationMembershipChange):
             return generic_message(request, _('Leaving organization'), _('You are not in "%s".') % org.short_name)
         if org.is_admin(profile):
             return generic_message(request, _('Leaving organization'), _('You cannot leave an organization you own.'))
+        matrix = MatrixUtils()
+        matrix.kick_user(org.name,self.request.user.username,"You have leaved the Organization!")
         profile.organizations.remove(org)
 
 
@@ -287,6 +292,8 @@ class OrganizationRequestView(OrganizationRequestBaseView):
             approved, rejected = 0, 0
             for obj in formset.save():
                 if obj.state == 'A':
+                    matrix = MatrixUtils()
+                    matrix.add_user(obj.user.user.username,obj.organization.name)
                     obj.user.organizations.add(obj.organization)
                     approved += 1
                 elif obj.state == 'R':
@@ -340,6 +347,8 @@ class CreateOrganization(PermissionRequiredMixin, TitleMixin, CreateView):
             for admin in all_admins:
                 admin.user.groups.add(g)
 
+            matrix = MatrixUtils()
+            matrix.create_room(org.name)
             return HttpResponseRedirect(self.get_success_url())
 
     def dispatch(self, request, *args, **kwargs):
@@ -407,7 +416,8 @@ class KickUserWidgetView(LoginRequiredMixin, OrganizationMixin, SingleObjectMixi
             return generic_message(request, _("Can't kick user"),
                                    _('The user you are trying to kick is an admin of organization: %s.') %
                                    organization.name, status=400)
-
+        matrix = MatrixUtils()
+        matrix.kick_user(organization.name,user.username,"User is kicked from organization!")
         organization.members.remove(user)
         return HttpResponseRedirect(organization.get_users_url())
 

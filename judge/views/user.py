@@ -48,6 +48,7 @@ from judge.utils.subscription import Subscription
 from judge.utils.unicode import utf8text
 from judge.utils.views import DiggPaginatorMixin, QueryStringSortMixin, SingleObjectFormView, TitleMixin, \
     add_file_response, generic_message
+from judge.utils.matrix_utils import MatrixUtils
 from judge.views.blog import PostListBase
 from .contests import ContestRanking
 
@@ -174,6 +175,10 @@ class CustomPasswordChangeView(PasswordChangeView):
 
     def form_valid(self, form):
         self.request.session['password_pwned'] = False
+        if(form.cleaned_data['new_password1'] == form.cleaned_data['new_password2']):
+            user = self.request.user
+            Matrix = MatrixUtils()
+            Matrix.change_password(user.username,form.cleaned_data['new_password1'])
         return super().form_valid(form)
 
 
@@ -234,7 +239,6 @@ class UserBan(UserMixin, TitleMixin, SingleObjectFormView):
             user.ban_user(form.cleaned_data['ban_reason'])
             revisions.set_user(self.request.user)
             revisions.set_comment(_('Banned by %s') % self.request.user)
-
         return HttpResponseRedirect(reverse('user_page', args=(user.user.username,)))
 
     def dispatch(self, request, *args, **kwargs):
@@ -662,6 +666,7 @@ class UserLogoutView(TitleMixin, TemplateView):
 
     def post(self, request, *args, **kwargs):
         auth_logout(request)
+        
         return HttpResponseRedirect(request.get_full_path())
 
 

@@ -183,6 +183,7 @@ class Problem(models.Model):
     allowed_languages = models.ManyToManyField(Language, verbose_name=_('allowed languages'),
                                                help_text=_('List of allowed submission languages.'))
     is_public = models.BooleanField(verbose_name=_('publicly visible'), db_index=True, default=False)
+    is_guest_private = models.BooleanField(verbose_name=_('Private to guest'), db_index=True, default=True)
     is_manually_managed = models.BooleanField(verbose_name=_('manually managed'), db_index=True, default=False,
                                               help_text=_('Whether judges should be allowed to manage data or not.'))
     date = models.DateTimeField(verbose_name=_('date of publishing'), null=True, blank=True, db_index=True,
@@ -256,6 +257,8 @@ class Problem(models.Model):
         return self.suggester is not None and not self.is_public
 
     def is_editable_by(self, user):
+        if user.is_superuser:
+            return True
         if not user.is_authenticated:
             return False
         if not user.has_perm('judge.edit_own_problem'):
@@ -269,6 +272,8 @@ class Problem(models.Model):
         return False
 
     def is_accessible_by(self, user, skip_contest_problem_check=False):
+        if user.is_superuser:
+            return True
         # If we don't want to check if the user is in a contest containing that problem.
         if not skip_contest_problem_check and user.is_authenticated:
             # If user is currently in a contest containing that problem.
@@ -281,7 +286,8 @@ class Problem(models.Model):
                 from judge.models import ContestProblem
                 if ContestProblem.objects.filter(problem_id=self.id, contest__users__id=current.id).exists():
                     return True
-
+        if self.is_guest_private and not user.is_authenticated:
+            return False
         # Problem is public.
         if self.is_public and not self.is_suggesting:
             # Problem is not private to an organization.
@@ -346,7 +352,6 @@ class Problem(models.Model):
         # Do unauthenticated check here so we can skip authentication checks later on.
         if not user.is_authenticated:
             return cls.get_public_problems()
-
         # Conditions for visible problem:
         #   - `judge.edit_all_problem` or `judge.see_private_problem`
         #   - otherwise

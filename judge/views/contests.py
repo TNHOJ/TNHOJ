@@ -340,10 +340,17 @@ class ContestAllProblems(ContestMixin, TitleMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(ContestAllProblems, self).get_context_data(**kwargs)
-        context['contest_problems'] = Problem.objects.filter(contests__contest=self.object) \
-            .order_by('contests__order') \
-            .add_i18n_name(self.request.LANGUAGE_CODE) \
-            .add_i18n_description(self.request.LANGUAGE_CODE)
+        if(self.request.user.is_authenticated):
+            context['contest_problems'] = Problem.objects.filter(contests__contest=self.object) \
+                .order_by('contests__order') \
+                .add_i18n_name(self.request.LANGUAGE_CODE) \
+                .add_i18n_description(self.request.LANGUAGE_CODE)
+        else:
+            context['contest_problems'] = Problem.objects.filter(contests__contest=self.object) \
+                .exclude(is_guest_private=True) \
+                .order_by('contests__order') \
+                .add_i18n_name(self.request.LANGUAGE_CODE) \
+                .add_i18n_description(self.request.LANGUAGE_CODE)
 
         # convert to problem points in contest instead of actual points
         points_list = list(self.object.contest_problems.values_list('points').order_by('order'))

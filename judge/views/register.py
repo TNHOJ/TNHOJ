@@ -17,6 +17,7 @@ from sortedm2m.forms import SortedMultipleChoiceField
 from judge.models import Language, Organization, Profile, TIMEZONE
 from judge.utils.recaptcha import ReCaptchaField, ReCaptchaWidget
 from judge.utils.subscription import Subscription, newsletter_id
+from judge.utils.matrix_utils import MatrixUtils
 from judge.widgets import Select2MultipleWidget, Select2Widget
 
 bad_mail_regex = list(map(re.compile, settings.BAD_MAIL_PROVIDER_REGEX))
@@ -98,6 +99,9 @@ class RegistrationView(OldRegistrationView):
         user.save()
         profile.save()
 
+        Matrix = MatrixUtils()
+        Matrix.create_account(cleaned_data['username'],cleaned_data['full_name'],cleaned_data['password1'])
+        
         if newsletter_id is not None and cleaned_data['newsletter']:
             Subscription(user=user, newsletter_id=newsletter_id, subscribed=True).save()
         return user

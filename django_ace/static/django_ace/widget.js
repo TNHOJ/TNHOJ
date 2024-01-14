@@ -81,7 +81,11 @@
             wordwrap = widget.getAttribute('data-wordwrap'),
             toolbar = prev(widget),
             main_block = toolbar.parentNode;
-
+        editor.setOptions({
+            enableBasicAutocompletion: true,
+            enableLiveAutocompletion: true,
+        });
+        
         // Toolbar maximize/minimize button
         var min_max = toolbar.getElementsByClassName('django-ace-max_min');
         min_max[0].onclick = function () {
@@ -192,7 +196,7 @@
     }
 
     if (window.addEventListener) { // W3C
-        window.addEventListener('load', init);
+        window.addEventListener('load', init)
     } else if (window.attachEvent) { // Microsoft
         window.attachEvent('onload', init);
     }
