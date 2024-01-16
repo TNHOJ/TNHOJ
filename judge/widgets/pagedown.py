@@ -30,7 +30,7 @@ else:
         class Media:
             js = [
                 'mathjax_config.js',
-                'https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.0/es5/tex-chtml.min.js',
+                'https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.min.js',
                 'pagedown_math.js',
             ]
 
